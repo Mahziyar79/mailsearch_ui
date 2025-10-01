@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوش</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="assets/images/logosteelalborz.png" alt="لوگو شرکت" class="logo">
+            </div>
+            <h1>کاوش</h1>
+            <p>سیستم جستجو ایمیل های سازمانی</p>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <h2>جستجوی داده‌ها</h2>
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="searchText">متن جستجو</label>
+                    <input type="text" id="searchText" name="searchText" placeholder="عبارات جستجو را وارد کنید (برای عدم فیلتر خالی بگذارید)">
+                </div>
+
+                <div class="form-group">
+                     <div class="form-group">
+                        <label for="searchFields">فیلدهای جستجو</label>
+                        <select id="searchFields" name="searchFields" multiple class="multi-select">
+                            <option value="subject" selected>subject</option>
+                            <option value="body" selected>body</option>
+                            <option value="sender">sender</option>
+                            <option value="email">email</option>
+                        </select>
+                        <small class="hint">برای انتخاب چند مورد، کلید <b>Ctrl</b> را نگه دارید و موارد را انتخاب کنید</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="operator">عملگر</label>
+                    <select id="operator" name="operator">
+                        <option value="or">یا (OR)</option>
+                        <option value="and">و (AND)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateFrom">تاریخ از (YYYY-MM-DD)</label>
+                        <input type="date" id="dateFrom" name="dateFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTo">تاریخ تا (YYYY-MM-DD)</label>
+                        <input type="date" id="dateTo" name="dateTo">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">جستجو</button>
+            </form>
+        </section>
+
+        <!-- Search Results Section -->
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <h2>نتایج جستجو</h2>
+            <div class="results-info">
+                <span id="resultsCount">0 نتیجه یافت شد</span>
+            </div>
+            <div class="table-container">
+                <table id="resultsTable" class="results-table">
+                    <thead>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>فرستنده</th>
+                            <th>متن</th>
+                            <th>موضوع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                    </tbody>
+                </table>
+                <div class="pagination" id="paginationControls" style="margin-top: 12px; display: none;">
+                    <button class="btn" id="prevPage" disabled>قبلی</button>
+                    <span id="pageInfo" style="margin: 0 8px;">صفحه 1</span>
+                    <button class="btn" id="nextPage" disabled>بعدی</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chat Section -->
+        <section class="chat-section">
+            <h2>سوال بپرسید</h2>
+            <div class="chat-container">
+                <div id="chatMessages" class="chat-messages"></div>
+                <form id="chatForm" class="chat-form">
+                    <div class="chat-input-group">
+                        <input type="text" id="chatInput" placeholder="سوالی در مورد نتایج جستجو بپرسید..." required>
+                        <button type="submit" class="btn btn-primary">ارسال</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

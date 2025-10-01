@@ -1,0 +1,363 @@
+@font-face {
+    font-family: 'Digi Rastin Plus Line';
+    src: url('assets/fonts/Digi Rastin Plus Line.otf') format('opentype'),
+         url('assets/fonts/Digi Rastin Plus Line.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Digi Rastin Plus Line', sans-serif !important;    
+    line-height: 1.6;
+    color: #333;
+    background: #d41b23;
+    min-height: 100vh;
+}
+
+input, select, button, textarea, table, th, td, h1, h2, h3, h4, h5, h6, p, span, div {
+    font-family: 'Digi Rastin Plus Line', sans-serif !important;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+
+.logo {
+    max-height: 80px;
+    max-width: 200px;
+    object-fit: contain;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Search Form Styles */
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+input, select {
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #d41b23;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Results Section */
+.results-info {
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #666;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e1e8ed;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.results-table th {
+    background: #f8f9fa;
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #e1e8ed;
+}
+
+.results-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e1e8ed;
+    vertical-align: top;
+}
+
+.results-table tr:hover {
+    background: #f8f9fa;
+}
+
+.results-table .score {
+    font-weight: 600;
+    color: #dc2626;
+}
+
+/* Chat Section */
+.chat-container {
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.message {
+    margin-bottom: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    max-width: 80%;
+}
+
+.message.user {
+    background: #dc2626;
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.message.assistant {
+    background: white;
+    border: 1px solid #e1e8ed;
+    margin-right: auto;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+.message-time {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-top: 8px;
+}
+
+.chat-form {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #e1e8ed;
+}
+
+.chat-input-group {
+    display: flex;
+    gap: 12px;
+}
+
+.chat-input-group input {
+    flex: 1;
+    margin: 0;
+}
+
+/* Loading States */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #dc2626;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.error {
+    background: #fee;
+    color: #c33;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #fcc;
+    margin: 10px 0;
+}
+#pageInfo{
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-input-group {
+        flex-direction: column;
+    }
+    
+    .message {
+        max-width: 95%;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #999;
+}
+
+/* Animation for results */
+.results-section.show {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* جدول اصلی */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* ستون‌ها عرض ثابت بگیرند */
+  word-wrap: break-word; /* متن‌ها بشکنند */
+}
+
+/* سرستون‌ها */
+.results-table th {
+  background-color: #f4f4f4;
+  text-align: left;
+  padding: 8px;
+  border-bottom: 2px solid #ddd;
+}
+
+.results-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+/* تقسیم عرض‌ها بین ستون‌ها */
+.results-table th:nth-child(1),
+.results-table td:nth-child(1) {
+  width: 15%; 
+}
+
+.results-table th:nth-child(2),
+.results-table td:nth-child(2) {
+  width: 15%; 
+  white-space: normal; 
+}
+
+
+.results-table th:nth-child(3),
+.results-table td:nth-child(3) {
+  width: 50%; 
+  white-space: normal; 
+}
