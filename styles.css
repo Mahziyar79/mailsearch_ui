@@ -473,6 +473,9 @@ input:focus, select:focus {
   word-wrap: break-word; /* متن‌ها بشکنند */
 }
 
+.checkbox-group label{
+    display: block;
+}
 /* سرستون‌ها */
 .results-table th {
   background-color: #f4f4f4;

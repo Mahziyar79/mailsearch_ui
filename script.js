@@ -47,7 +47,7 @@ async function handleSearch(e) {
     const formData = new FormData(searchForm);
     const searchParams = {
         searchText: formData.get('searchText') || '',
-        searchFields: Array.from(document.getElementById('searchFields').selectedOptions).map(opt => opt.value),
+        searchFields: Array.from(document.querySelectorAll('input[name="searchFields"]:checked')).map(cb => cb.value),
         operator: formData.get('operator') || 'or',
         dateFrom: formData.get('dateFrom') || '',
         dateTo: formData.get('dateTo') || ''
@@ -56,7 +56,6 @@ async function handleSearch(e) {
     currentSearchParams = searchParams;
     currentPage = 1;
     try {
-        // showLoading('Searching...');
         const results = await performElasticsearchSearch(searchParams, currentPage);
         displaySearchResults(results);
     } catch (error) {

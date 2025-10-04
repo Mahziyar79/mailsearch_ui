@@ -29,17 +29,27 @@
                 </div>
 
                 <div class="form-group">
-                     <div class="form-group">
-                        <label for="searchFields">فیلدهای جستجو</label>
-                        <select id="searchFields" name="searchFields" multiple class="multi-select">
-                            <option value="subject" selected>subject</option>
-                            <option value="body" selected>body</option>
-                            <option value="sender">sender</option>
-                            <option value="email">email</option>
-                        </select>
-                        <small class="hint">برای انتخاب چند مورد، کلید <b>Ctrl</b> را نگه دارید و موارد را انتخاب کنید</small>
-                    </div>
+                <label>فیلدهای جستجو</label>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" name="searchFields" value="subject" checked>
+                        subject
+                    </label>
+                    <label>
+                        <input type="checkbox" name="searchFields" value="body" checked>
+                        body
+                    </label>
+                    <label>
+                        <input type="checkbox" name="searchFields" value="sender">
+                        sender
+                    </label>
+                    <label>
+                        <input type="checkbox" name="searchFields" value="email">
+                        email
+                    </label>
                 </div>
+                <small class="hint">هر موردی را که می‌خواهید جستجو شود تیک بزنید</small>
+                </div>  
 
                 <div class="form-group">
                     <label for="operator">عملگر</label>
