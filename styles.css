@@ -37,6 +37,26 @@ header {
     color: white;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
 
 .logo {
     max-height: 80px;
@@ -240,21 +260,6 @@ input:focus, select:focus {
     margin: 0;
 }
 
-/* Loading States */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #dc2626;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 /* Error States */
 .error {
@@ -321,6 +326,145 @@ input:focus, select:focus {
     }
 }
 
+/* Login Page Styles */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #d41b23 0%, #b91c1c 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+.login-header {
+    margin-bottom: 30px;
+}
+
+.login-header .logo {
+    max-height: 60px;
+    max-width: 150px;
+    object-fit: contain;
+    margin-bottom: 20px;
+}
+
+.login-header h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.login-header p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-form .form-group {
+    text-align: right;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    font-family: 'Digi Rastin Plus Line', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.login-form input[type="email"]:focus,
+.login-form input[type="password"]:focus {
+    outline: none;
+    border-color: #d41b23;
+    box-shadow: 0 0 0 3px rgba(212, 27, 35, 0.1);
+}
+
+
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.login-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e8ed;
+}
+
+.login-footer p {
+    color: #666;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* Error message for login */
+.login-error {
+    background: #fee;
+    color: #c33;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #fcc;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Loading state for login button */
+.login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+/* Responsive design for login */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 10px;
+    }
+    
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .login-header h1 {
+        font-size: 1.5rem;
+    }
+}
+
 /* جدول اصلی */
 .results-table {
   width: 100%;
@@ -335,6 +479,7 @@ input:focus, select:focus {
   text-align: left;
   padding: 8px;
   border-bottom: 2px solid #ddd;
+  text-align: right;
 }
 
 .results-table td {
@@ -346,18 +491,18 @@ input:focus, select:focus {
 /* تقسیم عرض‌ها بین ستون‌ها */
 .results-table th:nth-child(1),
 .results-table td:nth-child(1) {
-  width: 15%; 
+  width: 20%; 
 }
 
 .results-table th:nth-child(2),
 .results-table td:nth-child(2) {
-  width: 15%; 
+  width: 50%; 
   white-space: normal; 
 }
 
 
 .results-table th:nth-child(3),
 .results-table td:nth-child(3) {
-  width: 50%; 
+  width: 15%; 
   white-space: normal; 
 }

@@ -26,6 +26,12 @@ const pageInfo = document.getElementById('pageInfo');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication first
+    if (!isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+    
     initializeEventListeners();
 });
 
@@ -168,10 +174,10 @@ function displaySearchResults(results) {
         results.forEach(result => {
             const row = document.createElement('tr');
             row.innerHTML = `
-            <td>${formatDate(result.date)}</td>
-            <td>${escapeHtml(result.sender || '')}</td>
-            <td>${escapeHtml(result.body)}</td>
             <td>${escapeHtml(result.subject)}</td>
+            <td>${escapeHtml(result.body)}</td>
+            <td>${escapeHtml(result.sender || '')}</td>
+            <td>${formatDate(result.date)}</td>
             `;
             resultsTableBody.appendChild(row);
         });
@@ -244,7 +250,6 @@ async function handleChat(e) {
         addMessage('assistant', 'متاسفم، خطایی رخ داد: ' + error.message);
     }
 }
-
 
 async function sendToLLM(question) {
     const requestBody = {
@@ -342,6 +347,26 @@ function showError(message) {
             errorDiv.remove();
         }
     }, 5000);
+}
+
+// Authentication functions
+function isLoggedIn() {
+    const authData = localStorage.getItem('authData');
+    if (!authData) return false;
+    
+    try {
+        const parsed = JSON.parse(authData);
+        // Check if token is not expired (24 hours)
+        const isExpired = Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000;
+        return !isExpired;
+    } catch (error) {
+        return false;
+    }
+}
+
+function logout() {
+    localStorage.removeItem('authData');
+    window.location.href = '/login';
 }
 
 

@@ -21,6 +21,16 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
+    
+    def do_GET(self):
+        # Handle /login route
+        if self.path == '/login' or self.path == '/login/':
+            self.path = '/login.html'
+        # Handle root path
+        elif self.path == '/' or self.path == '':
+            self.path = '/index.html'
+        
+        return super().do_GET()
 
 def main():
     port = 8000

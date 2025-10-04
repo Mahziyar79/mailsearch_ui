@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود - کاوش</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-container">
+                    <img src="assets/images/logosteelalborz.png" alt="لوگو شرکت" class="logo">
+                </div>
+                <h1>کاوش</h1>
+                <p>لطفاً وارد حساب کاربری خود شوید</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">ایمیل</label>
+                    <input type="email" id="email" name="email" placeholder="ایمیل خود را وارد کنید" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">رمز عبور</label>
+                    <input type="password" id="password" name="password" placeholder="رمز عبور خود را وارد کنید" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary login-btn">ورود</button>
+            </form>
+
+            <div class="login-footer">
+                <p>در صورت فراموشی رمز عبور، با مدیر سیستم تماس بگیرید</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>
+

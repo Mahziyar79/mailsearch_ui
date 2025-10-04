@@ -9,8 +9,11 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo-container">
-                <img src="assets/images/logosteelalborz.png" alt="لوگو شرکت" class="logo">
+            <div class="header-top">
+                <div class="logo-container">
+                    <img src="assets/images/logosteelalborz.png" alt="لوگو شرکت" class="logo">
+                </div>
+                <button onclick="logout()" class="btn btn-secondary logout-btn">خروج</button>
             </div>
             <h1>کاوش</h1>
             <p>سیستم جستجو ایمیل های سازمانی</p>
@@ -71,10 +74,10 @@
                 <table id="resultsTable" class="results-table">
                     <thead>
                         <tr>
-                            <th>تاریخ</th>
-                            <th>فرستنده</th>
-                            <th>متن</th>
                             <th>موضوع</th>
+                            <th>متن</th>
+                            <th>فرستنده</th>
+                            <th>تاریخ</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody">
