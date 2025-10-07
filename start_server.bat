@@ -11,7 +11,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM Start the server
-python server.py
+REM Start the server, optionally pass a port (default 8080)
+if "%1"=="" (
+    python server.py
+) else (
+    python server.py %1
+)
 
 pause

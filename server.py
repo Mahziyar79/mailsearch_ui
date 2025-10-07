@@ -30,7 +30,12 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
 def main():
-    port = 8000
+    # Allow overriding port via ENV FRONTEND_PORT or CLI arg
+    env_port = os.getenv('FRONTEND_PORT')
+    cli_port = None
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
+        cli_port = int(sys.argv[1])
+    port = int(cli_port or (env_port if (env_port and env_port.isdigit()) else 8080))
     
     # Check if port is available
     try:
@@ -51,7 +56,7 @@ def main():
             httpd.serve_forever()
             
     except OSError as e:
-        if e.errno == 48:  # Address already in use
+        if e.errno in (48, 10048):  # Address already in use (POSIX/Windows)
             print(f"❌ Port {port} is already in use. Trying port {port + 1}...")
             port += 1
             with socketserver.TCPServer(("", port), CORSHTTPRequestHandler) as httpd:
@@ -72,3 +77,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# docker build -t kavosh-frontend .

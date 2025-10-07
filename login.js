@@ -27,8 +27,6 @@ async function handleLogin(e) {
     
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const loginBtn = document.querySelector('.login-btn');
-    console.log(email,password);
     
     // Validate inputs
     if (!email || !password) {
@@ -46,14 +44,15 @@ async function handleLogin(e) {
     clearLoginError();
 
     try {
-        // Simulate API call (replace with actual authentication endpoint)
+        // Call real backend API for authentication
         const response = await authenticateUser(email, password);
         
         if (response.success) {
             // Store authentication data
             const authData = {
                 email: email,
-                token: response.token || 'demo-token',
+                token: response.token,
+                tokenType: response.tokenType || 'bearer',
                 timestamp: Date.now()
             };
             
@@ -73,31 +72,30 @@ async function handleLogin(e) {
 }
 
 async function authenticateUser(email, password) {
-    // This is a demo implementation
-    // Replace with actual API call to your authentication server
-    
-
-    
-    // Demo credentials (replace with actual authentication logic)
-    const validCredentials = [
-        { email: 'admin@example.com', password: '1' },
-    ];
-    
-    const isValid = validCredentials.some(cred => 
-        cred.email === email && cred.password === password
-    );
-    
-    if (isValid) {
+    try {
+        const res = await fetch(`${CONFIG.BACKEND.URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        
+        if (!res.ok) {
+            const message = data && (data.detail || data.message);
+            return { success: false, message: message || 'ایمیل یا رمز عبور اشتباه است' };
+        }
+        
+        // Expected shape from backend: { access_token: string, token_type: 'bearer' }
         return {
             success: true,
-            token: 'demo-token-' + Date.now(),
-            user: { email: email }
+            token: data.access_token,
+            tokenType: data.token_type || 'bearer'
         };
-    } else {
-        return {
-            success: false,
-            message: 'ایمیل یا رمز عبور اشتباه است'
-        };
+    } catch (err) {
+        return { success: false, message: 'عدم دسترسی به سرور' };
     }
 }
 
