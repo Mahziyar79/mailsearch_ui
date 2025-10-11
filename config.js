@@ -14,11 +14,8 @@ const CONFIG = {
     // LLM API Configuration
     LLM_API: {
         URL: 'http://localhost:5000/api/chat',
-        // Add authentication headers if needed
         HEADERS: {
             'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer your-token',
-            // 'X-API-Key': 'your-api-key'
         }
     },
     

@@ -649,3 +649,22 @@ input:focus, select:focus {
   width: 15%; 
   white-space: normal; 
 }
+.session-header{
+    display: flex;
+    justify-content: space-between;
+}
+.delete-session-btn{
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.session-item.active .delete-session-btn svg{
+    display: block;
+    width: 25px;
+    fill: white;
+}
+.session-item .delete-session-btn svg{
+    display: block;
+    width: 25px;
+}

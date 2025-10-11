@@ -480,11 +480,23 @@ function renderSessions(items) {
     sessionItem.className = 'session-item';
     sessionItem.dataset.sessionId = session.id;
     sessionItem.innerHTML = `
-      <div class="session-title">${escapeHtml(session.title || 'جلسه بدون عنوان')}</div>
-      <div class="session-date">${formatDate(session.created_at)}</div>
-    `;
+    <div class="session-header">
+      <div class="session-info">
+        <div class="session-title">${escapeHtml(session.title || 'جلسه بدون عنوان')}</div>
+        <div class="session-date">${formatDate(session.created_at)}</div>
+      </div>
+      <button class="delete-session-btn" title="حذف جلسه" data-id="${session.id}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M232.7 69.9C237.1 56.8 249.3 48 263.1 48L377 48C390.8 48 403 56.8 407.4 69.9L416 96L512 96C529.7 96 544 110.3 544 128C544 145.7 529.7 160 512 160L128 160C110.3 160 96 145.7 96 128C96 110.3 110.3 96 128 96L224 96L232.7 69.9zM128 208L512 208L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 208zM216 272C202.7 272 192 282.7 192 296L192 488C192 501.3 202.7 512 216 512C229.3 512 240 501.3 240 488L240 296C240 282.7 229.3 272 216 272zM320 272C306.7 272 296 282.7 296 296L296 488C296 501.3 306.7 512 320 512C333.3 512 344 501.3 344 488L344 296C344 282.7 333.3 272 320 272zM424 272C410.7 272 400 282.7 400 296L400 488C400 501.3 410.7 512 424 512C437.3 512 448 501.3 448 488L448 296C448 282.7 437.3 272 424 272z"/></svg>
+      </button>
+    </div>
+  `;
     
     sessionItem.addEventListener('click', () => selectSession(session));
+    const deleteBtn = sessionItem.querySelector('.delete-session-btn');
+    deleteBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await deleteSession(session.id);
+    });
     sessionsList.appendChild(sessionItem);
   });
 }
@@ -640,5 +652,42 @@ async function handleCreateSession(e) {
     selectSession(newSession);
   } catch (error) {
     showError('خطا در ایجاد جلسه: ' + error.message);
+  }
+}
+
+async function deleteSession(id) {
+  const confirmDelete = confirm('آیا از حذف این جلسه اطمینان دارید؟');
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      }
+    });
+
+    if (res.status === 204) {
+      // اگر سشن جاری حذف شد، UI را پاک کن
+      if (currentSessionId === id) {
+        currentSessionId = null;
+        chatMessages.innerHTML = '';
+        currentSessionTitle.textContent = 'انتخاب جلسه';
+      }
+
+      // به‌روزرسانی لیست سشن‌ها
+      await loadSessions();
+    } else if (res.status === 404) {
+      showError('جلسه پیدا نشد یا قبلاً حذف شده است');
+    } else if (res.status === 401) {
+      logout();
+    } else {
+      const text = await res.text().catch(() => '');
+      showError('خطا در حذف جلسه: ' + text);
+    }
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    showError('خطا در ارتباط با سرور هنگام حذف جلسه');
   }
 }
