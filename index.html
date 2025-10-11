@@ -149,7 +149,11 @@
     </div>
 
     <script src="config.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module">
+        import { logout } from './js/auth.js';
+        window.logout = logout;
+    </script>
 </body>
 </html>
 <!-- docker build -t kavosh-frontend . -->
