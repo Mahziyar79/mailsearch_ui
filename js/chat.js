@@ -37,6 +37,11 @@ async function sendToLLM(question) {
 export function addMessage(sender, content, scrollToBottom = true) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
+
+    const empty = chatMessages.querySelector('.empty-state');
+    if (empty) {
+        chatMessages.innerHTML = '';
+    }
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
