@@ -101,19 +101,51 @@
             </div>
         </section>
 
-        <!-- Chat Section -->
-        <section class="chat-section">
-            <h2>سوال بپرسید</h2>
-            <div class="chat-container">
-                <div id="chatMessages" class="chat-messages"></div>
-                <form id="chatForm" class="chat-form">
-                    <div class="chat-input-group">
-                        <input type="text" id="chatInput" placeholder="سوالی در مورد نتایج جستجو بپرسید..." required>
-                        <button type="submit" class="btn btn-primary">ارسال</button>
+        <!-- Chat Interface Section -->
+        <section class="chat-interface-section">
+            <div class="chat-layout">
+                <!-- Sessions Sidebar -->
+                <div class="sessions-sidebar">
+                    <div class="sidebar-header">
+                        <h2>جلسات</h2>
+                        <button id="newSessionBtn" class="btn btn-primary btn-sm">+ جدید</button>
                     </div>
-                </form>
+                    
+                    <!-- ساخت سشن جدید -->
+                    <form id="createSessionForm" class="session-form" style="display: none;">
+                        <div class="form-group">
+                            <input type="text" id="sessionTitle" placeholder="عنوان سشن جدید..." />
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-sm">ایجاد</button>
+                                <button type="button" id="cancelSessionBtn" class="btn btn-secondary btn-sm">لغو</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- لیست سشن‌ها -->
+                    <div class="sessions-list" id="sessionsList">
+                        <!-- سشن‌ها به صورت داینامیک -->
+                    </div>
+                </div>
+
+                <!-- Chat Main Area -->
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <h2 id="currentSessionTitle">انتخاب جلسه</h2>
+                    </div>
+                    <div class="chat-container">
+                        <div id="chatMessages" class="chat-messages"></div>
+                        <form id="chatForm" class="chat-form">
+                            <div class="chat-input-group">
+                                <input type="text" id="chatInput" placeholder="سوالی در مورد نتایج جستجو بپرسید..." required>
+                                <button type="submit" class="btn btn-primary">ارسال</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </section>
+
     </div>
 
     <script src="config.js"></script>

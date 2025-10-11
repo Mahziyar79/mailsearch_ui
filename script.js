@@ -10,6 +10,7 @@ let currentSearchParams = {};
 let totalHits = 0;
 let pageSize = 50;
 let currentPage = 1;
+const BACKEND_URL = window.CONFIG.BACKEND.URL;
 
 // DOM elements
 const searchForm = document.getElementById('searchForm');
@@ -23,6 +24,17 @@ const paginationControls = document.getElementById('paginationControls');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const pageInfo = document.getElementById('pageInfo');
+// عناصر بخش جلسات
+const createSessionForm = document.getElementById('createSessionForm');
+const sessionTitleInput = document.getElementById('sessionTitle');
+const sessionsList = document.getElementById('sessionsList');
+const newSessionBtn = document.getElementById('newSessionBtn');
+const cancelSessionBtn = document.getElementById('cancelSessionBtn');
+const currentSessionTitle = document.getElementById('currentSessionTitle');
+
+// Global variables for sessions
+let currentSessionId = null;
+let sessions = [];
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -33,11 +45,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     initializeEventListeners();
+    // بارگذاری اولیه لیست سشن‌ها
+    loadSessions().catch(err => showError('خطا در دریافت جلسات: ' + (err?.message || err)));
 });
 
 function initializeEventListeners() {
     searchForm.addEventListener('submit', handleSearch);
     chatForm.addEventListener('submit', handleChat);
+    if (createSessionForm) {
+        createSessionForm.addEventListener('submit', handleCreateSession);
+    }
+    if (newSessionBtn) {
+        newSessionBtn.addEventListener('click', showNewSessionForm);
+    }
+    if (cancelSessionBtn) {
+        cancelSessionBtn.addEventListener('click', hideNewSessionForm);
+    }
+}
+
+function getAuthHeaders() {
+  // authData: { email, token, tokenType, timestamp }
+  const raw = localStorage.getItem('authData');
+  if (!raw) return {};
+  try {
+    const auth = JSON.parse(raw);
+    const type = (auth.tokenType || 'bearer').trim();
+    return { 'Authorization': `${type.charAt(0).toUpperCase() + type.slice(1)} ${auth.token}` };
+  } catch {
+    return {};
+  }
 }
 
 // Search functionality
@@ -230,8 +266,22 @@ async function handleChat(e) {
     const question = chatInput.value.trim();
     if (!question) return;
     
+    // Check if a session is selected
+    if (!currentSessionId) {
+        showError('لطفاً ابتدا یک جلسه انتخاب کنید');
+        return;
+    }
+    
+    // Add user message to UI
     addMessage('user', question);
     chatInput.value = '';
+    
+    // Save user message to backend
+    try {
+        await saveMessage(currentSessionId, question,'user');
+    } catch (error) {
+        console.error('Error saving user message:', error);
+    }
     
     try {
         showLoading('در حال فکر کردن...');
@@ -241,12 +291,28 @@ async function handleChat(e) {
         const loadingDiv = document.querySelector('.loading-message');
         if (loadingDiv) loadingDiv.remove();
 
+        // Add assistant message to UI
         addMessage('assistant', response);
+        
+        // Save assistant message to backend
+        try {
+            await saveMessage(currentSessionId, response, 'user');
+        } catch (error) {
+            console.error('Error saving assistant message:', error);
+        }
     } catch (error) {
         const loadingDiv = document.querySelector('.loading-message');
         if (loadingDiv) loadingDiv.remove();
 
-        addMessage('assistant', 'متاسفم، خطایی رخ داد: ' + error.message);
+        const errorMessage = 'متاسفم، خطایی رخ داد: ' + error.message;
+        addMessage('assistant', errorMessage);
+        
+        // Save error message to backend
+        try {
+            await saveMessage(currentSessionId, errorMessage,'assistant');
+        } catch (saveError) {
+            console.error('Error saving error message:', saveError);
+        }
     }
 }
 
@@ -275,7 +341,7 @@ async function sendToLLM(question) {
     return data.response || data.answer || data.message || 'پاسخی دریافت نشد';
 }
 
-function addMessage(sender, content) {
+function addMessage(sender, content, scrollToBottom = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     
@@ -286,7 +352,9 @@ function addMessage(sender, content) {
     `;
     
     chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (scrollToBottom) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 }
 
 // Utility functions
@@ -370,3 +438,207 @@ function logout() {
 
 
 
+// Session management functions
+async function loadSessions() {
+  const res = await fetch(`${BACKEND_URL}/sessions`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  });
+  if (!res.ok) {
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    const txt = await res.text().catch(() => '');
+    throw new Error(`Failed to load sessions: ${res.status} ${txt}`);
+  }
+  const data = await res.json();
+  sessions = data;
+  renderSessions(data);
+  
+  // Auto-select first session if none is selected
+  if (data.length > 0 && !currentSessionId) {
+    selectSession(data[0]);
+  }
+}
+
+function renderSessions(items) {
+  sessionsList.innerHTML = '';
+  if (!items || items.length === 0) {
+    sessionsList.innerHTML = `
+      <div class="empty-state" style="padding: 20px; text-align: center; color: #666;">
+        <p>هیچ جلسه‌ای یافت نشد</p>
+      </div>`;
+    return;
+  }
+  
+  items.forEach(session => {
+    const sessionItem = document.createElement('div');
+    sessionItem.className = 'session-item';
+    sessionItem.dataset.sessionId = session.id;
+    sessionItem.innerHTML = `
+      <div class="session-title">${escapeHtml(session.title || 'جلسه بدون عنوان')}</div>
+      <div class="session-date">${formatDate(session.created_at)}</div>
+    `;
+    
+    sessionItem.addEventListener('click', () => selectSession(session));
+    sessionsList.appendChild(sessionItem);
+  });
+}
+
+async function selectSession(session) {
+  // Update current session
+  currentSessionId = session.id;
+  currentSessionTitle.textContent = session.title || 'جلسه بدون عنوان';
+  
+  // Update UI - remove active class from all items
+  document.querySelectorAll('.session-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Add active class to selected item
+  const selectedItem = document.querySelector(`[data-session-id="${session.id}"]`);
+  if (selectedItem) {
+    selectedItem.classList.add('active');
+  }
+  
+  // Load messages for this session
+  await loadSessionMessages(session.id);
+}
+
+async function loadSessionMessages(sessionId) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}/messages`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      }
+    });
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+      if (res.status === 404) {
+        // Messages endpoint not implemented yet, show empty state
+        displayMessages([]);
+        return;
+      }
+      throw new Error(`Failed to load messages: ${res.status}`);
+    }
+    
+    const messages = await res.json();
+    displayMessages(messages);
+  } catch (error) {
+    console.error('Error loading messages:', error);
+    // If it's a network error or endpoint doesn't exist, show empty state
+    if (error.message.includes('Failed to fetch') || error.message.includes('404')) {
+      displayMessages([]);
+    } else {
+      showError('خطا در بارگذاری پیام‌ها: ' + error.message);
+    }
+  }
+}
+
+function displayMessages(messages) {
+  chatMessages.innerHTML = '';
+  
+  if (!messages || messages.length === 0) {
+    chatMessages.innerHTML = `
+      <div class="empty-state" style="text-align: center; color: #666; padding: 40px;">
+        <p>هیچ پیامی در این جلسه وجود ندارد</p>
+        <p>سوالی بپرسید تا گفتگو شروع شود</p>
+      </div>`;
+    return;
+  }
+  
+  messages.forEach(message => {
+    const sender = message.role === 'assistant' ? 'assistant' : 'user';
+    addMessage(sender, message.content, false);
+  });
+}
+
+async function saveMessage(sessionId, content,role = 'user') {
+  try {
+    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ content, role })
+    });
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+      if (res.status === 404) {
+        console.warn('Messages endpoint not implemented yet');
+        return null;
+      }
+      throw new Error(`Failed to save message: ${res.status}`);
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.warn('Error saving message:', error);
+    return null;
+  }
+}
+
+// New session form management
+function showNewSessionForm() {
+  createSessionForm.style.display = 'block';
+  newSessionBtn.style.display = 'none';
+  sessionTitleInput.focus();
+}
+
+function hideNewSessionForm() {
+  createSessionForm.style.display = 'none';
+  newSessionBtn.style.display = 'block';
+  sessionTitleInput.value = '';
+}
+
+async function handleCreateSession(e) {
+  e.preventDefault();
+  const title = (sessionTitleInput.value || '').trim();
+  
+  if (!title) {
+    showError('لطفاً عنوان جلسه را وارد کنید');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify({ title })
+    });
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+      const txt = await res.text().catch(() => '');
+      showError('ساخت جلسه ناموفق بود: ' + txt);
+      return;
+    }
+    
+    const newSession = await res.json();
+    hideNewSessionForm();
+    await loadSessions();
+    
+    // Auto-select the newly created session
+    selectSession(newSession);
+  } catch (error) {
+    showError('خطا در ایجاد جلسه: ' + error.message);
+  }
+}
