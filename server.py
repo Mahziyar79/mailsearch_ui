@@ -22,10 +22,12 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
     
     def do_GET(self):
-        if self.path == '/login' or self.path == '/login/':
-            self.path = '/login.html'
-        elif self.path == '/' or self.path == '':
+        if self.path in ('/', ''):
             self.path = '/index.html'
+        elif self.path in ('/login', '/login/'):
+            self.path = '/login.html'
+        elif self.path in ('/register', '/register/'):
+            self.path = '/register.html'
         
         return super().do_GET()
 
@@ -79,3 +81,4 @@ if __name__ == "__main__":
     main()
 
 # docker build -t kavosh-frontend .
+# docker run -d -p 8080:8080 --name kavosh-frontend kavosh-frontend
