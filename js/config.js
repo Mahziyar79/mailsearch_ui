@@ -29,5 +29,6 @@ export const globalState = {
     totalHits: 0,
     currentPage: 1,
     currentSessionId: null,
-    sessions: []
+    sessions: [],
+    hasElasticRequest: false
 };

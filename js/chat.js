@@ -8,29 +8,43 @@ import { escapeHtml, showLoading, removeLoading, showError } from './utils.js';
 import { saveMessage } from './session.js';
 
 
+function buildContextTextFromResults(results, maxItems = 5, maxChars = 8000) {
+  if (!results || results.length === 0) return '';
+
+  let combined = results
+    .slice(0, maxItems)
+    .map(r => {
+      const subject = (r.subject || '').toString();
+      const body = (r.body || '').toString();
+      const sender = (r.sender || '').toString();
+      const date = (r.date || '').toString();
+      return `${subject} ${body} ${sender} ${date}`.trim();
+    })
+    .join(' ');
+
+  return combined;
+}
+
 async function sendToLLM(question) {
-    const requestBody = {
-        question: question,
-        context: globalState.searchResults.length > 0 ? {
-            searchResults: globalState.searchResults,
-            searchParams: globalState.currentSearchParams
-        } : null
-    };
+  const string1 = buildContextTextFromResults(globalState.searchResults, 5, 6000);
+  const string2 = question;
 
-    const response = await fetch(LLM_CONFIG.URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-    });
+  const payload = { string1, string2 };
 
-    if (!response.ok) {
-        throw new Error(`LLM API request failed: ${response.status} ${response.statusText}`);
-    }
+  const response = await fetch(LLM_CONFIG.URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
 
-    const data = await response.json();
-    return data.response || data.answer || data.message || 'پاسخی دریافت نشد';
+  if (!response.ok) {
+    throw new Error(`LLM API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.result || 'پاسخی دریافت نشد';
 }
 
 
@@ -67,6 +81,11 @@ export async function handleChat(e){
     
     const question = chatInput.value.trim();
     if (!question) return;
+
+    if (!globalState.hasElasticRequest) {
+        showError('ابتدا یک جستجو انجام دهید تا زمینهٔ لازم فراهم شود.');
+        return;
+    }
     
     // Check if a session is selected
     if (!globalState.currentSessionId) {

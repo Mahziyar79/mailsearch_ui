@@ -1,7 +1,7 @@
 const CONFIG = {
     // Backend API
     BACKEND: {
-        URL: 'http://172.16.55.24:9000'
+        URL: 'http://localhost:9000'
     },
     // Elasticsearch Configuration
     ELASTICSEARCH: {
@@ -13,7 +13,7 @@ const CONFIG = {
     
     // LLM API Configuration
     LLM_API: {
-        URL: 'http://localhost:5000/api/chat',
+        URL: 'http://172.16.55.28:5000/combine',
         HEADERS: {
             'Content-Type': 'application/json',
         }

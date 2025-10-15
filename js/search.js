@@ -60,6 +60,7 @@ function buildElasticsearchQuery(params, page) {
 }
 
 export async function performElasticsearchSearch(params, page) {
+    globalState.hasElasticRequest = true;
     const query = buildElasticsearchQuery(params, page);
     
     const headers = {
