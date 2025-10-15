@@ -1,7 +1,7 @@
 const CONFIG = {
     // Backend API
     BACKEND: {
-        URL: 'http://localhost:9000'
+        URL: 'http://172.16.55.24:9000'
     },
     // Elasticsearch Configuration
     ELASTICSEARCH: {
