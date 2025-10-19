@@ -63,18 +63,33 @@ export function renderSessions(items) {
                     <div class="session-title">${escapeHtml(session.title || 'جلسه بدون عنوان')}</div>
                     <div class="session-date">${formatDate(session.created_at)}</div>
                 </div>
-                <button class="delete-session-btn" title="حذف جلسه" data-id="${session.id}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M232.7 69.9C237.1 56.8 249.3 48 263.1 48L377 48C390.8 48 403 56.8 407.4 69.9L416 96L512 96C529.7 96 544 110.3 544 128C544 145.7 529.7 160 512 160L128 160C110.3 160 96 145.7 96 128C96 110.3 110.3 96 128 96L224 96L232.7 69.9zM128 208L512 208L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 208zM216 272C202.7 272 192 282.7 192 296L192 488C192 501.3 202.7 512 216 512C229.3 512 240 501.3 240 488L240 296C240 282.7 229.3 272 216 272zM320 272C306.7 272 296 282.7 296 296L296 488C296 501.3 306.7 512 320 512C333.3 512 344 501.3 344 488L344 296C344 282.7 333.3 272 320 272zM424 272C410.7 272 400 282.7 400 296L400 488C400 501.3 410.7 512 424 512C437.3 512 448 501.3 448 488L448 296C448 282.7 437.3 272 424 272z"/></svg>
-                </button>
+                <div class="session-btns"> 
+                    <button class="edit-session-btn" title="ویرایش عنوان" data-id="${session.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="18" height="18">
+                        <path d="M403.4 83.6c12.5-12.5 32.8-12.5 45.3 0l107.7 107.7c12.5 12.5 12.5 32.8 0 45.3L267.2 625.8c-6 6-13.6 10.1-22 11.8L96 664c-17.7 3.5-33.9-12.7-30.4-30.4l26.3-149.2c1.7-8.4 5.8-16 11.8-22L403.4 83.6zM574.6 169.9L466.9 62.2l28.3-28.3c12.5-12.5 32.8-12.5 45.3 0l57.4 57.4c12.5 12.5 12.5 32.8 0 45.3l-23.3 33.3zM240 520l-80 16 16-80 64 64z"/>
+                        </svg>
+                    </button>
+                    <button class="delete-session-btn" title="حذف جلسه" data-id="${session.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M232.7 69.9C237.1 56.8 249.3 48 263.1 48L377 48C390.8 48 403 56.8 407.4 69.9L416 96L512 96C529.7 96 544 110.3 544 128C544 145.7 529.7 160 512 160L128 160C110.3 160 96 145.7 96 128C96 110.3 110.3 96 128 96L224 96L232.7 69.9zM128 208L512 208L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 208zM216 272C202.7 272 192 282.7 192 296L192 488C192 501.3 202.7 512 216 512C229.3 512 240 501.3 240 488L240 296C240 282.7 229.3 272 216 272zM320 272C306.7 272 296 282.7 296 296L296 488C296 501.3 306.7 512 320 512C333.3 512 344 501.3 344 488L344 296C344 282.7 333.3 272 320 272zM424 272C410.7 272 400 282.7 400 296L400 488C400 501.3 410.7 512 424 512C437.3 512 448 501.3 448 488L448 296C448 282.7 437.3 272 424 272z"/></svg>
+                    </button>
+                </div>
             </div>
         `;
         
         sessionItem.addEventListener('click', () => selectSession(session));
+
+        const editBtn = sessionItem.querySelector('.edit-session-btn');
+        editBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await promptAndUpdateSessionTitle(session);
+        });
+
         const deleteBtn = sessionItem.querySelector('.delete-session-btn');
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await deleteSession(session.id);
         });
+
         sessionsList.appendChild(sessionItem);
     });
 }
@@ -296,4 +311,52 @@ export async function deleteSession(id) {
         console.error('Error deleting session:', error);
         showError('خطا در ارتباط با سرور هنگام حذف جلسه');
     }
+}
+
+export async function updateSessionTitle(sessionId, newTitle) {
+  const res = await fetch(`${BACKEND_CONFIG.URL}/sessions/${sessionId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ title: newTitle })
+  });
+
+  if (!res.ok) {
+    if (handleAuthError(res)) return null;
+    const txt = await res.text().catch(() => '');
+    throw new Error(`Failed to update title: ${res.status} ${txt}`);
+  }
+  return await res.json();
+}
+
+export async function promptAndUpdateSessionTitle(session) {
+  const current = session.title || '';
+  const newTitle = prompt('عنوان جدید سشن را وارد کنید:', current);
+  if (newTitle === null) return; // cancel
+  const trimmed = newTitle.trim();
+  if (!trimmed) {
+    showError('عنوان نمی‌تواند خالی باشد');
+    return;
+  }
+
+  try {
+    const updated = await updateSessionTitle(session.id, trimmed);
+
+    const idx = globalState.sessions.findIndex(s => s.id === session.id);
+    if (idx !== -1) {
+      globalState.sessions[idx] = updated;
+    }
+
+    renderSessions(globalState.sessions);
+
+    if (globalState.currentSessionId === session.id) {
+      const currentSessionTitle = document.getElementById('currentSessionTitle');
+      if (currentSessionTitle) currentSessionTitle.textContent = updated.title || 'جلسه بدون عنوان';
+    }
+
+  } catch (err) {
+    showError('به‌روزرسانی عنوان ناموفق بود: ' + err.message);
+  }
 }

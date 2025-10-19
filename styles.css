@@ -647,18 +647,23 @@ input:focus, select:focus {
     display: flex;
     justify-content: space-between;
 }
-.delete-session-btn{
+.delete-session-btn,.edit-session-btn{
     background: transparent;
     border: none;
     cursor: pointer;
 }
 
-.session-item.active .delete-session-btn svg{
+.session-item.active .delete-session-btn svg,.session-item.active .edit-session-btn svg{
     display: block;
     width: 25px;
     fill: white;
 }
-.session-item .delete-session-btn svg{
+.session-item .delete-session-btn svg,.session-item .edit-session-btn svg{
     display: block;
     width: 25px;
+}
+.session-btns {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
