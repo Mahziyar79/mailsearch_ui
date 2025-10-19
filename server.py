@@ -26,8 +26,6 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.path = '/index.html'
         elif self.path in ('/login', '/login/'):
             self.path = '/login.html'
-        elif self.path in ('/register', '/register/'):
-            self.path = '/register.html'
         
         return super().do_GET()
 

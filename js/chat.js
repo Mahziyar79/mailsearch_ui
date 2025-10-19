@@ -60,10 +60,8 @@ export function addMessage(sender, content, scrollToBottom = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     
-    const time = new Date().toLocaleTimeString();
     messageDiv.innerHTML = `
         <div class="message-content">${escapeHtml(content)}</div>
-        <div class="message-time">${time}</div>
     `;
     
     chatMessages.appendChild(messageDiv);
