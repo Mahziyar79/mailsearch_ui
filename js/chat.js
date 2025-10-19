@@ -8,9 +8,22 @@ import { escapeHtml, showLoading, removeLoading, showError } from './utils.js';
 import { saveMessage } from './session.js';
 
 
+function buildHistoryTextFromMessages(messages, maxItems = 200, maxChars = 8000) {
+  if (!messages || messages.length === 0) return '';
+  const chunks = [];
+  for (const m of messages.slice(-maxItems)) {
+    const role = m.role === 'assistant' ? 'a' : 'u';
+    chunks.push(`[${role}] ${m.content}`);
+  }
+  let joined = chunks.join(' ');
+  if (joined.length > maxChars) {
+    joined = joined.slice(-maxChars); 
+  }
+  return joined;
+}
+
 function buildContextTextFromResults(results, maxItems = 5, maxChars = 8000) {
   if (!results || results.length === 0) return '';
-
   let combined = results
     .slice(0, maxItems)
     .map(r => {
@@ -21,21 +34,29 @@ function buildContextTextFromResults(results, maxItems = 5, maxChars = 8000) {
       return `${subject} ${body} ${sender} ${date}`.trim();
     })
     .join(' ');
-
+  if (combined.length > maxChars) {
+    combined = combined.slice(0, maxChars);
+  }
   return combined;
 }
 
 async function sendToLLM(question) {
-  const string1 = buildContextTextFromResults(globalState.searchResults, 5, 6000);
+  const contextFromSearch = buildContextTextFromResults(globalState.searchResults, 5, 6000);
+
+  const sessionId = globalState.currentSessionId;
+  const historyArr = (globalState.sessionMessages && sessionId)
+    ? (globalState.sessionMessages[sessionId] || [])
+    : [];
+  const historyText = buildHistoryTextFromMessages(historyArr, 200, 6000);
+
+  const string1 = `${contextFromSearch} ${historyText}`.trim();
   const string2 = question;
 
   const payload = { string1, string2 };
 
   const response = await fetch(LLM_CONFIG.URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
 

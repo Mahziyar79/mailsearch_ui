@@ -8,6 +8,9 @@ import { getAuthHeaders, handleAuthError, logout } from './auth.js';
 import { escapeHtml, formatDate, showError } from './utils.js';
 import { addMessage } from './chat.js';
 
+globalState.sessionMessages = globalState.sessionMessages || {};
+
+
 /**
  * Load all sessions from backend
  */
@@ -118,10 +121,6 @@ export async function selectSession(session) {
     await loadSessionMessages(session.id);
 }
 
-/**
- * Load messages for a specific session
- * @param {string} sessionId - Session ID
- */
 export async function loadSessionMessages(sessionId) {
     try {
         const res = await fetch(`${BACKEND_CONFIG.URL}/sessions/${sessionId}/messages`, {
@@ -143,6 +142,8 @@ export async function loadSessionMessages(sessionId) {
         }
         
         const messages = await res.json();
+        globalState.sessionMessages = globalState.sessionMessages || {};
+        globalState.sessionMessages[sessionId] = messages;
         displayMessages(messages);
     } catch (error) {
         console.error('Error loading messages:', error);
@@ -195,7 +196,15 @@ export async function saveMessage(sessionId, content, role = 'user') {
             throw new Error(`Failed to save message: ${res.status}`);
         }
         
-        return await res.json();
+        const saved = await res.json();
+
+        globalState.sessionMessages = globalState.sessionMessages || {};
+        if (!globalState.sessionMessages[sessionId]) {
+            globalState.sessionMessages[sessionId] = [];
+        }
+        globalState.sessionMessages[sessionId].push(saved);
+
+        return saved;
     } catch (error) {
         console.warn('Error saving message:', error);
         return null;
@@ -287,7 +296,6 @@ export async function deleteSession(id) {
         });
 
         if (res.status === 204) {
-            // اگر سشن جاری حذف شد، UI را پاک کن
             if (globalState.currentSessionId === id) {
                 globalState.currentSessionId = null;
                 const chatMessages = document.getElementById('chatMessages');
@@ -296,8 +304,9 @@ export async function deleteSession(id) {
                 if (chatMessages) chatMessages.innerHTML = '';
                 if (currentSessionTitle) currentSessionTitle.textContent = 'انتخاب جلسه';
             }
-
-            // به‌روزرسانی لیست سشن‌ها
+            if (globalState.sessionMessages) {
+            delete globalState.sessionMessages[id];
+            }
             await loadSessions();
         } else if (res.status === 404) {
             showError('جلسه پیدا نشد یا قبلاً حذف شده است');
@@ -334,7 +343,7 @@ export async function updateSessionTitle(sessionId, newTitle) {
 export async function promptAndUpdateSessionTitle(session) {
   const current = session.title || '';
   const newTitle = prompt('عنوان جدید سشن را وارد کنید:', current);
-  if (newTitle === null) return; // cancel
+  if (newTitle === null) return;
   const trimmed = newTitle.trim();
   if (!trimmed) {
     showError('عنوان نمی‌تواند خالی باشد');
