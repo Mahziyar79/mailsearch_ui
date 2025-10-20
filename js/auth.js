@@ -1,3 +1,5 @@
+import { cleanupEmptySessions } from './session.js';
+
 export function getAuthHeaders() {
     const raw = localStorage.getItem('authData');
     if (!raw) return {};
@@ -19,7 +21,6 @@ export function isLoggedIn() {
     
     try {
         const parsed = JSON.parse(authData);
-        // Check if token is not expired (24 hours)
         const isExpired = Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000;
         return !isExpired;
     } catch (error) {
@@ -27,7 +28,12 @@ export function isLoggedIn() {
     }
 }
 
-export function logout() {
+export async function logout() {
+    try {
+        await cleanupEmptySessions();
+    } catch (e) {
+        console.warn("Cleanup before logout failed", e);
+    }
     localStorage.removeItem('authData');
     window.location.href = '/login';
 }

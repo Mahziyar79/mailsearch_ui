@@ -1,5 +1,6 @@
 import { ELASTICSEARCH_CONFIG, SEARCH_CONFIG, globalState } from './config.js';
 import { escapeHtml, formatDate, showError } from './utils.js';
+import { createAndSelectSession } from './session.js';
 
 
 function buildElasticsearchQuery(params, page) {
@@ -90,6 +91,8 @@ export async function performElasticsearchSearch(params, page) {
         subject: hit._source.subject || '',
         body: hit._source.body || '',
         sender: hit._source.sender || hit._source.from || '',
+        to: hit._source.to || '',
+        cc: hit._source.cc || '',
         date: hit._source.date || hit._source.timestamp || '',
     }));
 }
@@ -113,6 +116,11 @@ export async function handleSearch(e) {
     try {
         const results = await performElasticsearchSearch(searchParams, globalState.currentPage);
         displaySearchResults(results);
+        globalState.hasElasticRequest = true;
+
+        const titleText = (searchParams.searchText || '').trim() || 'بدون متن';
+        const title = `${titleText}`;
+        await createAndSelectSession(title);
     } catch (error) {
         showError('جستجو ناموفق بود: ' + error.message);
     }

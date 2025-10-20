@@ -1,7 +1,3 @@
-/**
- * Main application script
- * Initializes the application and sets up event listeners
- */
 
 import { isLoggedIn } from './auth.js';
 import { showError } from './utils.js';
@@ -11,13 +7,19 @@ import {
     loadSessions, 
     showNewSessionForm, 
     hideNewSessionForm, 
-    handleCreateSession 
+    handleCreateSession,
+    cleanupEmptySessions
 } from './session.js';
 
-/**
- * Initialize event listeners for all interactive elements
- */
 function initializeEventListeners() {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+        cleanupEmptySessions({ keepalive: true });
+        }
+    });
+    window.addEventListener('beforeunload', () => {
+        cleanupEmptySessions({ keepalive: true });
+    });
     // Search form
     const searchForm = document.getElementById('searchForm');
     if (searchForm) {

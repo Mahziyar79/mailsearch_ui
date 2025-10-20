@@ -369,3 +369,94 @@ export async function promptAndUpdateSessionTitle(session) {
     showError('به‌روزرسانی عنوان ناموفق بود: ' + err.message);
   }
 }
+
+export async function createAndSelectSession(title) {
+  try {
+    const res = await fetch(`${BACKEND_CONFIG.URL}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify({ title })
+    });
+
+    if (!res.ok) {
+      if (handleAuthError(res)) return null;
+      const txt = await res.text().catch(() => '');
+      throw new Error(`Failed to create session: ${res.status} ${txt}`);
+    }
+
+    const newSession = await res.json();
+
+    globalState.sessions = [newSession, ...(globalState.sessions || [])];
+    renderSessions(globalState.sessions);
+
+    await selectSession(newSession);
+    return newSession;
+  } catch (err) {
+    showError('ساخت سشن جدید ناموفق بود: ' + err.message);
+    return null;
+  }
+}
+
+export async function cleanupEmptySessions(options = {}) {
+  const { keepalive = false } = options;
+  const sessions = globalState.sessions || [];
+
+  if (!sessions.length) return;
+
+  for (const session of sessions) {
+    const sessionId = session.id;
+    if (!sessionId) continue;
+
+    const messages = globalState.sessionMessages?.[sessionId] || [];
+    let hasMessages = messages.length > 0;
+
+    if (!hasMessages) {
+      try {
+        const res = await fetch(
+          `${BACKEND_CONFIG.URL}/sessions/${sessionId}/messages?limit=1`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...getAuthHeaders()
+            },
+            keepalive
+          }
+        );
+
+        if (res.ok) {
+          const arr = await res.json();
+          hasMessages = Array.isArray(arr) && arr.length > 0;
+        } else {
+          console.warn(`Couldn't check messages for session ${sessionId}`);
+          continue;
+        }
+      } catch (err) {
+        console.warn(`Could not verify messages from server for session ${sessionId}:`, err);
+        continue;
+      }
+    }
+    if (!hasMessages) {
+      try {
+        const delRes = await fetch(`${BACKEND_CONFIG.URL}/sessions/${sessionId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
+          keepalive
+        });
+
+        if (delRes.status === 204) {
+          console.log(`Deleted empty session ${sessionId}`);
+        }
+      } catch (err) {
+        console.warn(`Error deleting empty session ${sessionId}:`, err);
+      }
+    }
+  }
+}
+
