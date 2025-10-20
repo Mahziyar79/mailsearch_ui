@@ -12,13 +12,15 @@ export function truncateText(text, maxLength) {
 
 
 export function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString();
-    } catch (error) {
-        return dateString;
-    }
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  if (isNaN(d)) return dateString;
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');        
+
+  return `${year}/${month}/${day}`;
 }
 
 

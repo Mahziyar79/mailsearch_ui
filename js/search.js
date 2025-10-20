@@ -3,6 +3,12 @@ import { escapeHtml, formatDate, showError } from './utils.js';
 import { createAndSelectSession } from './session.js';
 
 
+globalState.pageResultsRaw = []; 
+globalState.resultsView = {
+  sortKey: null,   
+  sortDir: 'asc'  
+};
+
 function buildElasticsearchQuery(params, page) {
     const query = {
         query: {
@@ -11,7 +17,6 @@ function buildElasticsearchQuery(params, page) {
             }
         },
         size: SEARCH_CONFIG.PAGE_SIZE,
-        // Prefer score when text query exists; otherwise sort by date
         sort: [
             { _score: { order: 'desc' } },
             { date: { order: 'desc' } }
@@ -19,7 +24,6 @@ function buildElasticsearchQuery(params, page) {
         from: (Math.max(1, page) - 1) * SEARCH_CONFIG.PAGE_SIZE
     };
 
-    // Add text search if provided
     if (params.searchText.trim()) {
         const fields = params.searchFields;
         const textQuery = {
@@ -127,59 +131,38 @@ export async function handleSearch(e) {
 }
 
 export function displaySearchResults(results) {
-    globalState.searchResults = results;
-    const resultsCount = document.getElementById('resultsCount');
-    const resultsTableBody = document.getElementById('resultsTableBody');
-    const resultsSection = document.getElementById('resultsSection');
-    const paginationControls = document.getElementById('paginationControls');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const pageInfo = document.getElementById('pageInfo');
-    
-    if (resultsCount) {
-        resultsCount.textContent = `${globalState.totalHits} نتیجه یافت شد`;
-    }
-    
-    // Clear previous results
-    if (resultsTableBody) {
-        resultsTableBody.innerHTML = '';
-        
-        if (results.length === 0) {
-            resultsTableBody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        <h3>هیچ نتیجه‌ای یافت نشد</h3>
-                        <p>معیارهای جستجوی خود را تنظیم کنید</p>
-                    </td>
-                </tr>
-            `;
-        } else {
-            results.forEach(result => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                <td>${escapeHtml(result.subject)}</td>
-                <td>${escapeHtml(result.body)}</td>
-                <td>${escapeHtml(result.sender || '')}</td>
-                <td>${formatDate(result.date)}</td>
-                `;
-                resultsTableBody.appendChild(row);
-            });
-        }
-    }
-    
-    if (resultsSection) {
-        resultsSection.style.display = 'block';
-        resultsSection.classList.add('show');
-    }
+  globalState.resultsView.sortKey = null;
+  globalState.resultsView.sortDir = 'asc';
+  globalState.pageResultsRaw = results.slice();
+  globalState.searchResults = results; 
 
-    // Update pagination controls
-    const totalPages = Math.max(1, Math.ceil(globalState.totalHits / SEARCH_CONFIG.PAGE_SIZE));
-    if (paginationControls) {
-        paginationControls.style.display = globalState.totalHits > SEARCH_CONFIG.PAGE_SIZE ? 'flex' : 'none';
-        if (prevPageBtn) prevPageBtn.disabled = globalState.currentPage <= 1;
-        if (nextPageBtn) nextPageBtn.disabled = globalState.currentPage >= totalPages;
-        if (pageInfo) pageInfo.textContent = `صفحه ${globalState.currentPage} از ${totalPages}`;
-    }
+  const resultsCount = document.getElementById('resultsCount');
+  const resultsSection = document.getElementById('resultsSection');
+  const paginationControls = document.getElementById('paginationControls');
+  const prevPageBtn = document.getElementById('prevPage');
+  const nextPageBtn = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+
+  if (resultsCount) {
+    resultsCount.textContent = `${globalState.totalHits} نتیجه یافت شد`;
+  }
+
+  if (resultsSection) {
+    resultsSection.style.display = 'block';
+    resultsSection.classList.add('show');
+  }
+
+  const totalPages = Math.max(1, Math.ceil(globalState.totalHits / SEARCH_CONFIG.PAGE_SIZE));
+  if (paginationControls) {
+    paginationControls.style.display = globalState.totalHits > SEARCH_CONFIG.PAGE_SIZE ? 'flex' : 'none';
+    if (prevPageBtn) prevPageBtn.disabled = globalState.currentPage <= 1;
+    if (nextPageBtn) nextPageBtn.disabled = globalState.currentPage >= totalPages;
+    if (pageInfo) pageInfo.textContent = `صفحه ${globalState.currentPage} از ${totalPages}`;
+  }
+
+  attachHeaderSortHandlers();
+
+  applySortAndRender();
 }
 
 
@@ -205,4 +188,84 @@ export async function handleNextPage() {
     } catch (error) {
         showError('جستجو ناموفق بود: ' + error.message);
     }
+}
+
+
+function renderResultsTable(rows) {
+  const tbody = document.getElementById('resultsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-state">
+          <h3>هیچ نتیجه‌ای یافت نشد</h3>
+        </td>
+      </tr>`;
+    return;
+  }
+
+  rows.forEach(result => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(result.subject)}</td>
+      <td>${escapeHtml(result.body)}</td>
+      <td>${escapeHtml(result.sender || '')}</td>
+      <td>${formatDate(result.date)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateHeaderSortIndicators() {
+  const { sortKey, sortDir } = globalState.resultsView;
+  document.querySelectorAll('#resultsTable thead th.sortable').forEach(th => {
+    th.classList.remove('asc', 'desc');
+    const key = th.getAttribute('data-sort-key');
+    if (sortKey && key === sortKey) th.classList.add(sortDir);
+  });
+}
+
+function applySortAndRender() {
+  const { sortKey, sortDir } = globalState.resultsView;
+  let rows = [...globalState.pageResultsRaw];
+
+  if (sortKey) {
+    rows.sort((a, b) => {
+      if (sortKey === 'date') {
+        const da = new Date(a.date || '').getTime() || 0;
+        const db = new Date(b.date || '').getTime() || 0;
+        return sortDir === 'asc' ? (da - db) : (db - da);
+      }
+      const va = (a[sortKey] ?? '').toString();
+      const vb = (b[sortKey] ?? '').toString();
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+  }
+
+  globalState.searchResults = rows;
+
+  renderResultsTable(rows);
+  updateHeaderSortIndicators();
+}
+
+let sortHandlersAttached = false;
+function attachHeaderSortHandlers() {
+  if (sortHandlersAttached) return;
+  sortHandlersAttached = true;
+
+  document.querySelectorAll('#resultsTable thead th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.getAttribute('data-sort-key');
+      const rv = globalState.resultsView;
+
+      if (rv.sortKey === key) {
+        rv.sortDir = rv.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        rv.sortKey = key;
+        rv.sortDir = 'asc';
+      }
+      applySortAndRender();
+    });
+  });
 }

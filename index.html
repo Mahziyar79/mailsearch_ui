@@ -52,7 +52,6 @@
                         رونوشت (CC)
                     </label>
                 </div>
-                <small class="hint">هر موردی را که می‌خواهید جستجو شود تیک بزنید</small>
                 </div>  
 
                 <div class="form-group">
@@ -88,10 +87,10 @@
                 <table id="resultsTable" class="results-table">
                     <thead>
                         <tr>
-                            <th>موضوع</th>
-                            <th>متن</th>
-                            <th>فرستنده</th>
-                            <th>تاریخ</th>
+                            <th data-sort-key="subject" class="sortable">موضوع</th>
+                            <th data-sort-key="body" class="sortable">متن</th>
+                            <th data-sort-key="sender" class="sortable">فرستنده</th>
+                            <th data-sort-key="date" class="sortable">تاریخ</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody">

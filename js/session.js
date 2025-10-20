@@ -1,8 +1,3 @@
-/**
- * Session management module
- * Handles session creation, deletion, and message management
- */
-
 import { BACKEND_CONFIG, globalState } from './config.js';
 import { getAuthHeaders, handleAuthError, logout } from './auth.js';
 import { escapeHtml, formatDate, showError } from './utils.js';
@@ -10,10 +5,6 @@ import { addMessage } from './chat.js';
 
 globalState.sessionMessages = globalState.sessionMessages || {};
 
-
-/**
- * Load all sessions from backend
- */
 export async function loadSessions() {
     const res = await fetch(`${BACKEND_CONFIG.URL}/sessions`, {
         method: 'GET',
@@ -33,16 +24,11 @@ export async function loadSessions() {
     globalState.sessions = data;
     renderSessions(data);
     
-    // Auto-select first session if none is selected
     if (data.length > 0 && !globalState.currentSessionId) {
         selectSession(data[0]);
     }
 }
 
-/**
- * Render sessions list in UI
- * @param {Array} items - Array of session objects
- */
 export function renderSessions(items) {
     const sessionsList = document.getElementById('sessionsList');
     if (!sessionsList) return;

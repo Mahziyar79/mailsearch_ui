@@ -518,7 +518,7 @@ input:focus, select:focus {
     margin-bottom: 8px;
     font-weight: 600;
     color: #555;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
 }
 
 .login-form input[type="email"],
@@ -599,18 +599,18 @@ input:focus, select:focus {
     }
 }
 
-/* جدول اصلی */
+
 .results-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* ستون‌ها عرض ثابت بگیرند */
-  word-wrap: break-word; /* متن‌ها بشکنند */
+  table-layout: fixed; 
+  word-wrap: break-word; 
 }
 
 .checkbox-group label{
     display: block;
 }
-/* سرستون‌ها */
+
 .results-table th {
   background-color: #f4f4f4;
   text-align: left;
@@ -625,7 +625,6 @@ input:focus, select:focus {
   vertical-align: top;
 }
 
-/* تقسیم عرض‌ها بین ستون‌ها */
 .results-table th:nth-child(1),
 .results-table td:nth-child(1) {
   width: 20%; 
@@ -667,3 +666,7 @@ input:focus, select:focus {
     align-items: center;
     gap: 15px;
 }
+
+.sortable { cursor: pointer; user-select: none; }
+.sortable.asc::after  { content: " ▲"; font-size: 12px; }
+.sortable.desc::after { content: " ▼"; font-size: 12px; }

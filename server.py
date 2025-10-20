@@ -30,14 +30,12 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
 def main():
-    # Allow overriding port via ENV FRONTEND_PORT or CLI arg
     env_port = os.getenv('FRONTEND_PORT')
     cli_port = None
     if len(sys.argv) > 1 and sys.argv[1].isdigit():
         cli_port = int(sys.argv[1])
     port = int(cli_port or (env_port if (env_port and env_port.isdigit()) else 8080))
     
-    # Check if port is available
     try:
         with socketserver.TCPServer(("", port), CORSHTTPRequestHandler) as httpd:
             print(f"🚀 Server starting on http://localhost:{port}")
@@ -56,8 +54,8 @@ def main():
             httpd.serve_forever()
             
     except OSError as e:
-        if e.errno in (48, 10048):  # Address already in use (POSIX/Windows)
-            print(f"❌ Port {port} is already in use. Trying port {port + 1}...")
+        if e.errno in (48, 10048):
+            print(f"Port {port} is already in use. Trying port {port + 1}...")
             port += 1
             with socketserver.TCPServer(("", port), CORSHTTPRequestHandler) as httpd:
                 print(f"🚀 Server starting on http://localhost:{port}")
@@ -69,7 +67,7 @@ def main():
                 print("="*50 + "\n")
                 httpd.serve_forever()
         else:
-            print(f"❌ Error starting server: {e}")
+            print(f"Error starting server: {e}")
             sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n🛑 Server stopped by user")
