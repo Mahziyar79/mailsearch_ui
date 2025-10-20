@@ -30,5 +30,7 @@ export const globalState = {
     currentPage: 1,
     currentSessionId: null,
     sessions: [],
-    hasElasticRequest: false
+    hasElasticRequest: false,
+    currentUserEmail: null,
+    isAdmin: false,
 };

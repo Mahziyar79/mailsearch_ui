@@ -10,58 +10,74 @@ globalState.resultsView = {
 };
 
 function buildElasticsearchQuery(params, page) {
-    const query = {
-        query: {
-            bool: {
-                must: []
-            }
-        },
-        size: SEARCH_CONFIG.PAGE_SIZE,
-        sort: [
-            { _score: { order: 'desc' } },
-            { date: { order: 'desc' } }
-        ],
-        from: (Math.max(1, page) - 1) * SEARCH_CONFIG.PAGE_SIZE
+  const query = {
+    query: {
+      bool: {
+        must: [],
+        filter: []
+      }
+    },
+    size: SEARCH_CONFIG.PAGE_SIZE,
+    sort: [
+      { _score: { order: 'desc' } },
+      { date: { order: 'desc' } }
+    ],
+    from: (Math.max(1, page) - 1) * SEARCH_CONFIG.PAGE_SIZE
+  };
+
+  if (params.searchText.trim()) {
+    const fields = params.searchFields;
+    const textQuery = {
+      multi_match: {
+        query: params.searchText,
+        fields: fields,
+        operator: params.operator,
+        type: 'best_fields'
+      }
     };
+    query.query.bool.must.push(textQuery);
+  }
 
-    if (params.searchText.trim()) {
-        const fields = params.searchFields;
-        const textQuery = {
-            multi_match: {
-                query: params.searchText,
-                fields: fields,
-                operator: params.operator,
-                type: 'best_fields'
-            }
-        };
-        query.query.bool.must.push(textQuery);
-    }
+  if (params.dateFrom || params.dateTo) {
+    const dateRange = {};
+    if (params.dateFrom) dateRange.gte = params.dateFrom;
+    if (params.dateTo) dateRange.lte = params.dateTo;
 
-    // Add date range filter if provided
-    if (params.dateFrom || params.dateTo) {
-        const dateRange = {};
-        if (params.dateFrom) {
-            dateRange.gte = params.dateFrom;
-        }
-        if (params.dateTo) {
-            dateRange.lte = params.dateTo;
-        }
+    query.query.bool.filter.push({
+      range: { date: dateRange }
+    });
+  }
+  if (globalState.currentUserEmail && globalState.currentUserEmail.toLowerCase() !== 'admin@steelalborz.com') {
+    const userEmail = globalState.currentUserEmail.toLowerCase();
 
-        query.query.bool.filter = [
-            {
-                range: {
-                    date: dateRange
-                }
-            }
-        ];
-    }
+    query.query.bool.filter.push({
+      bool: {
+        should: [
+          { term: { 'sender.keyword': userEmail } },
+          { term: { 'email.keyword': userEmail } },
+          { term: { 'to.keyword': userEmail } },
+          { term: { 'cc.keyword': userEmail } },
+          { match_phrase: { sender: userEmail } },
+          { match_phrase: { email: userEmail } },
+          { match_phrase: { to: userEmail } },
+          { match_phrase: { cc: userEmail } }
+        ],
+        minimum_should_match: 1
+      }
+    });
+  }
 
-    // If no search text and no date filters, return all documents
-    if (!params.searchText.trim() && !params.dateFrom && !params.dateTo) {
-        query.query = { match_all: {} };
-    }
+  if (
+    !params.searchText.trim() &&
+    !params.dateFrom &&
+    !params.dateTo &&
+    (!globalState.currentUserEmail ||
+      globalState.currentUserEmail.toLowerCase() === 'admin@steelalborz.com')
+  ) {
+    query.query = { match_all: {} };
+  }
 
-    return query;
+  return query;
 }
 
 export async function performElasticsearchSearch(params, page) {

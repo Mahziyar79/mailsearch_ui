@@ -1,6 +1,7 @@
 
-import { isLoggedIn } from './auth.js';
+import { isLoggedIn,getAuthHeaders } from './auth.js';
 import { showError } from './utils.js';
+import { BACKEND_CONFIG, globalState } from './config.js';
 import { handleSearch, handlePreviousPage, handleNextPage } from './search.js';
 import { handleChat } from './chat.js';
 import { 
@@ -68,6 +69,25 @@ async function initializeApp() {
     if (!isLoggedIn()) {
         window.location.href = '/login';
         return;
+    }
+
+    try {
+        const res = await fetch(`${BACKEND_CONFIG.URL}/auth/me`, {
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+        });
+        
+        if (res.ok) {
+            const me = await res.json();
+            const email = (me?.email || '').toLowerCase();
+            globalState.currentUserEmail = email;
+            globalState.isAdmin = email === 'admin@steelalborz.com';
+        } else {
+            globalState.currentUserEmail = null;
+            globalState.isAdmin = false;
+        }
+    } catch {
+        globalState.currentUserEmail = null;
+        globalState.isAdmin = false;
     }
     
     // Initialize event listeners
